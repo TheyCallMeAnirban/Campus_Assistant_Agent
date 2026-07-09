@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+
+# Node
+node_modules/
+dist/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+knowledge/validation_report.csv
+
+# Bulk raw AISHE survey data (not used at runtime)
+knowledge/All India Survey on Higher Education*/
+knowledge/All India Survey on Higher Education - */
+knowledge/raw/
+
+# Large raw datasets
+knowledge/College_Admission.csv
+knowledge/india_cities.csv
+knowledge/india_schools.csv
