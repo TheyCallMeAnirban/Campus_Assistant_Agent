@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- C arc: thick rounded stroke, white with slight lavender tint -->
+  <path
+    d="M 72 20
+       A 38 38 0 1 0 72 80"
+    stroke="url(#arcGrad)"
+    stroke-width="10"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Three horizontal gradient lines inside the C -->
+  <!-- Top line -->
+  <line x1="44" y1="38" x2="70" y2="38" stroke="url(#lineGrad1)" stroke-width="7" stroke-linecap="round"/>
+  <!-- Middle line -->
+  <line x1="44" y1="52" x2="66" y2="52" stroke="url(#lineGrad2)" stroke-width="7" stroke-linecap="round"/>
+  <!-- Bottom line (shortest, slight speech-bubble feel) -->
+  <line x1="44" y1="66" x2="60" y2="66" stroke="url(#lineGrad3)" stroke-width="7" stroke-linecap="round"/>
+
+  <defs>
+    <!-- Arc gradient: soft white to very light lavender -->
+    <linearGradient id="arcGrad" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#e8e8ff"/>
+      <stop offset="100%" stop-color="#c8c8f0"/>
+    </linearGradient>
+
+    <!-- Lines: cyan-blue to indigo-purple -->
+    <linearGradient id="lineGrad1" x1="44" y1="38" x2="70" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="lineGrad2" x1="44" y1="52" x2="66" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="lineGrad3" x1="44" y1="66" x2="60" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+</svg>
