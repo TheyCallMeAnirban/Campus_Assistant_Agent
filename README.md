@@ -1,213 +1,183 @@
-# Campus Assistant Agent
+# Campus Agent — AI-Powered College Discovery Assistant
 
-A conversational AI assistant for Indian higher education, built with **LangGraph**, **Google Gemini**, and **React**. Ask natural-language questions about colleges, fees, scholarships, and exam policies — and get grounded, source-cited answers.
-
----
-
-## Architecture
-
-```
-User Question
-      │
-      ▼
-┌─────────────┐
-│ Intent Node │  ← Hybrid: keyword fast-path + Gemini fallback
-└──────┬──────┘
-       │ intent
-       ▼
-┌──────────────────────────────────────────────┐
-│              LangGraph Router                │
-└──┬──────────┬──────────┬──────────┬──────────┘
-   ▼          ▼          ▼          ▼
-College     Exam       Fees    Scholarship
- Info       Node       Node       Node
-   │          │          │          │
-   └──────────┴──────────┴──────────┘
-                    │
-                    ▼
-           Structured Response
-        { intent, matched_entity,
-            source, answer }
-```
-
-Each specialized node:
-1. Looks up relevant structured data from domain-specific CSVs (no cross-domain mega-joins)
-2. Formats it as plain context
-3. Sends it to Gemini with a strict "answer only from context" system prompt
+Campus Agent is a high-performance, production-grade college analytics and discovery assistant built on **FastAPI**, **LangGraph**, **Google Gemini 2.5 Flash**, and **React**. Designed to resolve the complex discovery and filtering constraints faced by prospective college students, it grounds large language models in structured CSV databases, avoiding hallucination and offering transparent, source-cited responses.
 
 ---
 
-## Tech Stack
+## 🏛️ System Architecture
 
-| Layer | Technology |
-|---|---|
-| AI Orchestration | [LangGraph](https://github.com/langchain-ai/langgraph) |
-| LLM | Google Gemini 2.5 Flash Lite (via `langchain-google-genai`) |
-| API Server | FastAPI + Uvicorn |
-| Frontend | React (Vite) |
-| Data | Pandas — domain-specific CSV files |
+Campus Agent implements a hybrid routing pipeline that combines zero-latency deterministic routing with advanced LLM semantic classification, feeding into a single-pass graph workflow.
+
+```
+                   [ User Query ]
+                          │
+                          ▼
+            +───────────────────────────+
+            |        Intent Node        |
+            |  (Keyword Fast-Path +     |
+            |   Gemini Semantic Fallback|
+            +─────────────┬─────────────+
+                          │
+                  intent classified
+                          ▼
+            +───────────────────────────+
+            |     LangGraph Router      |
+            +──┬──────────┬──────────┬──+
+               │          │          │
+               ▼          ▼          ▼
+         [info_node]  [fees_node]  [sch_node] ...
+               │          │          │
+               +──────────┼──────────+
+                          │
+                  grounded context
+                          ▼
+            +───────────────────────────+
+            |      Gemini Explainer     |
+            +───────────────────────────+
+                          │
+                   markdown response
+                          ▼
+                    [ User UI ]
+```
+
+### Routing & Node Execution Cycle
+1. **Hybrid Intent Routing**: The system parses the query. Obvious queries (e.g. including terms like `fees`, `scholarship`) bypass the LLM entirely, executing in **<2ms**. Ambiguous phrases trigger a semantic call to **Gemini 2.5 Flash** for intent classification.
+2. **Deterministic Data Query Engine (Python/Pandas)**: Once the intent is routed to a specific graph node, the system queries the corresponding CSV files. It handles complex sorting, top-N slicing, range filters, and comparison joins in memory using Pandas.
+3. **Structured Context Injection**: The output is compiled into a highly descriptive context header (detailing active filters, sort orders, and matching counts) followed by formatted CSV subset records.
+4. **Context-Grounded Explanation (LLM Answering)**: Gemini reads the user's question alongside the generated context. It runs under strict constraints: it can only format, explain, and summarize the data provided, eliminating hallucination.
 
 ---
 
-## Project Structure
+## 💻 Tech Stack
+
+| Layer | Component | Description |
+|---|---|---|
+| **AI Orchestration** | [LangGraph](https://github.com/langchain-ai/langgraph) | Single-pass DAG workflow orchestration with conditional routing. |
+| **Generative LLM** | Google Gemini 2.5 Flash | Handles intent fallback and grounded natural language explanations. |
+| **API Backend** | FastAPI + Uvicorn | Asynchronous HTTP service with automatic OpenAPI generation. |
+| **Data Engine** | Pandas (Python) | High-speed, in-memory query, comparison, and constraint-filtering engine. |
+| **Frontend UI** | React + Vite | Fluid dark-mode layout utilizing glassmorphic aesthetics and smooth custom micro-animations. |
+
+---
+
+## 📂 Project Structure
 
 ```
-College Project/
-├── app.py                  # FastAPI server — single /chat endpoint
-├── graph.py                # LangGraph workflow: nodes + conditional routing
-├── nodes.py                # All 5 node implementations (intent + 4 specialized)
-├── prompts.py              # System prompts for intent classification and answering
-├── state.py                # CollegeState TypedDict
-├── requirements.txt
+Campus_Assistant_Agent/
+├── app.py                  # FastAPI application entrypoint & API middleware configuration
+├── graph.py                # LangGraph workflow builder and execution state definitions
+├── nodes.py                # Graph node functions containing the Pandas filtering engine
+├── prompts.py              # Answering guidelines and intent classification prompts
+├── state.py                # Type-safe state context (TypedDict) passed between nodes
+├── requirements.txt        # Python package dependencies
 │
-├── knowledge/
-│   ├── build_knowledge_base.py   # Downloads, parses, cleans, and validates data
-│   ├── preprocess.py             # Generates domain-specific processed CSVs
-│   ├── College_Admission.csv     # Raw admissions dataset (~1.8 MB)
-│   ├── india_colleges.csv        # College directory
-│   ├── india_cities.csv
-│   ├── exam_rules.csv
-│   └── processed/
-│       ├── college_info.csv      # College metadata (NIRF rank, rating, location, type)
-│       ├── fees.csv              # Tuition, hostel, mess, and one-time fees
-│       ├── placements.csv        # Placement stats (avg/max package, placement rate)
-│       ├── hostel.csv            # Hostel availability and charges
-│       ├── admission.csv         # Admission requirements and documents
-│       ├── exam_rules.csv        # Midterm/final exam policies
-│       └── scholarship.csv       # Historical scholarship eligibility records
+├── knowledge/              # Core Knowledge Base
+│   ├── preprocess.py       # Flat preprocessing script (drops duplicates, cleans schemas)
+│   ├── college_info.csv    # Directory of 1,203 colleges with ratings, city, state, types
+│   ├── fees.csv            # Tuition, hostel, mess, and one-time fee breakdowns
+│   ├── placements.csv      # Package averages (LPA), highest packages, placement ratios
+│   ├── hostel.csv          # Room types, mess requirements, and hostel details
+│   ├── admission.csv       # Document checklists and admission criteria
+│   ├── exam_rules.csv      # Academic policies and attendance requirements
+│   └── scholarship.csv     # 24,000+ historical student scholarship records
 │
-└── frontend/
-    ├── index.html
-    └── src/
-        ├── App.jsx               # Main UI — chat interface with frosted-glass panels
-        └── App.css               # Design system: glassmorphism, Inter font, dark palette
+└── frontend/               # Single Page Application
+    ├── src/
+    │   ├── App.jsx         # ChatGPT-style multi-conversation manager and UI layout
+    │   ├── App.css         # Modern styling rules (glassmorphic panels, animated glows)
+    │   └── main.jsx        # App bootstrapper
+    └── .env.local          # Frontend environment variables
 ```
 
 ---
 
-## Supported Intents
+## 🔍 Data-Grounding & Constraint Logic
 
-| Intent | Example Question |
-|---|---|
-| `college_info` | "What is the NIRF rank of IIT ISM Dhanbad?" |
-| `fees` | "What are the fees at NIT Jamshedpur?" |
-| `scholarship` | "What is the scholarship eligibility rate for SC students with 85%?" |
-| `exam` | "What is the attendance policy for midterm exams?" |
+Unlike traditional RAG systems that rely on vector similarity (which frequently returns irrelevant chunks for quantitative constraints), Campus Agent uses a **deterministic query pipeline** inside `nodes.py`:
 
-The intent node uses a **keyword fast-path** (no LLM call for obvious queries) and falls back to Gemini only when keywords are ambiguous.
+*   **Comparison Queries**: When parsing `Compare A and B` or `A vs B`, the engine matches both colleges, performs a column-wise join across the directory, fee, and placement sheets, and produces a side-by-side metric matrix.
+*   **Quantitative Thresholds**: Recognizes fee limits (`under 2 lakh`) and placement minimums (`above 15 LPA`) using regex, applies corresponding boolean masks to Pandas dataframes, and sorts by rating.
+*   **Top-N Lists**: If the query includes `top 10` or `top 5`, the engine slices the sorted dataframe in Python *before* passing the text context to Gemini.
+*   **Fuzzy Matching Safeguards**: To prevent generic terms (like the word `"colleges"`) from triggering false positives against college names, the single-college lookup node uses discovery checks to skip the fuzzy matches for list/search requests.
 
 ---
 
-## Covered Colleges
-
-| College | Location |
-|---|---|
-| IIT (ISM) Dhanbad | Jharkhand |
-| NIT Jamshedpur | Jharkhand |
-| BIT Mesra | Jharkhand |
-| NIT Rourkela | Odisha |
-| IIT Kharagpur | West Bengal |
-
----
-
-## Quickstart
+## ⚡ Quickstart
 
 ### Prerequisites
+*   Python 3.10+
+*   Node.js 18+
+*   Google Gemini API Key
 
-- Python 3.10+
-- Node.js 18+
-- A Google Gemini API key ([get one free](https://aistudio.google.com/app/apikey))
-
-### 1. Clone
+### 1. Configuration
+Clone the repository and set up your backend environment:
 
 ```bash
+# Clone
 git clone https://github.com/TheyCallMeAnirban/Campus_Assistant_Agent.git
 cd Campus_Assistant_Agent
+
+# Configure Gemini key
+echo GOOGLE_API_KEY=your_gemini_api_key_here > .env
 ```
 
-### 2. Backend
-
+### 2. Launch Backend Server
 ```bash
-# Create and activate a virtual environment
+# Initialize virtual env
 python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # macOS/Linux
+.venv\Scripts\activate      # On Windows
+# source .venv/bin/activate # On macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure API key
-echo GOOGLE_API_KEY=your_key_here > .env
-
-# Start the API server
+# Run FastAPI reload server
 uvicorn app:app --reload
 ```
+The server starts at `http://127.0.0.1:8000`. You can inspect endpoints via the Swagger docs at `http://127.0.0.1:8000/docs`.
 
-Server will be live at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
-
-### 3. Frontend
-
+### 3. Launch Frontend Client
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-UI will be live at `http://localhost:5173`.
+The UI dashboard opens automatically at `http://localhost:5173`.
 
 ---
 
-## API Reference
+## 📡 API Spec
 
 ### `POST /chat`
+Submits a user message and returns a grounded response from the graph.
 
+**Request Body:**
 ```json
-// Request
-{ "question": "What are the fees at NIT Jamshedpur?" }
-
-// Response
 {
-  "intent": "fees",
-  "matched_entity": "NIT Jamshedpur",
-  "source": "Official Fee Structure 2025-26",
-  "answer": "The tuition fee at NIT Jamshedpur is ₹X per semester..."
+  "question": "Compare NIT Jamshedpur and NIT Rourkela"
+}
+```
+
+**Response Body:**
+```json
+{
+  "intent": "college_info",
+  "matched_entity": "NIT Jamshedpur vs NIT Rourkela",
+  "source": "NIRF / Official College Data 2025",
+  "answer": "### Comparison Matrix\n\nMetric | NIT Jamshedpur | NIT Rourkela\n---|---|---\nNIRF Rank | #101 | #37\nRating | 7.8 | 8.2\nAvg Fee | ₹186,000 | ₹191,000\nAvg Package | 14.65 LPA | 15.0 LPA\n..."
 }
 ```
 
 ---
 
-## Data Pipeline
+## 🛡️ Robust Answering Rules (Strict Grounding)
 
-```
-build_knowledge_base.py   →   raw/             (official sources)
-preprocess.py             →   knowledge/processed/   (domain CSVs)
-```
-
-Run these only if you want to refresh the knowledge base:
-
-```bash
-cd knowledge
-python build_knowledge_base.py
-python preprocess.py
-```
-
-The processed CSVs are committed to the repository so you don't need to run this for normal usage.
+The Gemini generation is bound by strict prompt directives:
+1. **Never Invent Facts**: If a college is missing from the database (e.g. `BIT Sindri`), the system explicitly responds stating that the data is not available.
+2. **Context-Only Framing**: The explainer translates raw database logs into markdown paragraphs, bullet points, or lists without extrapolating information.
+3. **Statistical Framing**: When answering scholarship or admission chance questions based on historical records, the model presents the findings as a trend (e.g. *"Among comparable student profiles in the database, 82% were eligible..."*) to avoid representing it as an official university rule.
 
 ---
 
-## Design Decisions
-
-**Why domain-specific CSVs instead of one merged file?**  
-Each node loads only the data it needs. If placement figures are updated, you regenerate `placements.csv` — not a monolithic joined table. This keeps preprocessing simple, debugging straightforward, and data freshness isolated.
-
-**Why a keyword fast-path before the LLM?**  
-Most real queries contain an obvious keyword (`fee`, `scholarship`, `exam`). Invoking Gemini for intent classification on every request adds ~1 second of latency and burns quota. The fast-path makes those the zero-cost path; Gemini handles only genuinely ambiguous queries.
-
-**Why "answer only from context" in the system prompt?**  
-Without grounding, LLMs hallucinate fees, ranks, and scholarship percentages. The strict prompt forces the model to cite or refuse, making the answers auditable.
-
----
-
-## License
-
-MIT
+## 📜 License
+This project is licensed under the MIT License.

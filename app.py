@@ -10,10 +10,13 @@ app = FastAPI(title="College Analytics & Information Assistant API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 class ChatRequest(BaseModel):

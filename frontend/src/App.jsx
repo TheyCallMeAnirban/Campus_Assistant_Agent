@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef, forwardRef } from 'react';
 import './App.css';
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
+
+const SUGGESTIONS = [
+  'Top 10 NITs in India',
+  'Compare NIT Jamshedpur and NIT Rourkela',
+  'Show colleges in Karnataka',
+  'Colleges under ₹2 lakh fees',
+  'Show IIITs in India',
+  'Colleges with average package above 15 LPA',
+];
+
 // ── Splash Screen ─────────────────────────────────────────────
 function SplashScreen({ onDone }) {
   const [fading, setFading] = useState(false);
@@ -132,20 +143,28 @@ function renderMarkdown(text) {
   };
 
   const parseLine = (line) => {
-    const boldRx = /\*\*(.*?)\*\*/g;
     const parts = [];
+    let key = 0;
+    const rx = /\*\*(.*?)\*\*|`([^`]+)`/g;
     let last = 0, m;
-    while ((m = boldRx.exec(line)) !== null) {
+    while ((m = rx.exec(line)) !== null) {
       if (m.index > last) parts.push(line.slice(last, m.index));
-      parts.push(<strong key={m.index}>{m[1]}</strong>);
-      last = boldRx.lastIndex;
+      if (m[1] !== undefined) parts.push(<strong key={key++}>{m[1]}</strong>);
+      if (m[2] !== undefined) parts.push(<code key={key++}>{m[2]}</code>);
+      last = rx.lastIndex;
     }
     parts.push(line.slice(last));
     return parts;
   };
 
   lines.forEach((line, idx) => {
-    const bullet = line.match(/^(\*|-)\s+(.*)/);
+    const heading = line.match(/^(#{1,3})\s+(.*)/);
+    if (heading) {
+      flushList(idx);
+      elements.push(<h3 key={idx}>{parseLine(heading[2])}</h3>);
+      return;
+    }
+    const bullet = line.match(/^(\*|-|\d+\.)\s+(.*)/);
     if (bullet) {
       listBuffer.push(<li key={idx}>{parseLine(bullet[2])}</li>);
     } else {
@@ -172,25 +191,35 @@ function useAutoGrow(ref, value) {
 
 // ── Main App ───────────────────────────────────────────────────
 export default function App() {
-  const [question, setQuestion]     = useState('');
-  const [response, setResponse]     = useState(null);
-  const [isLoading, setIsLoading]   = useState(false);
-  const [stepIdx, setStepIdx]       = useState(0);
-  const [error, setError]           = useState(null);
-  const [history, setHistory]       = useState([]);
-  const [showSplash, setShowSplash] = useState(true);
+  // Each conversation: { id: string, title: string, messages: [{role, content, meta?}] }
+  const [conversations, setConversations] = useState([]);
+  const [activeConvId, setActiveConvId]   = useState(null);
+  const [inputVal, setInputVal]           = useState('');
+  const [isLoading, setIsLoading]         = useState(false);
+  const [stepIdx, setStepIdx]             = useState(0);
+  const [error, setError]                 = useState(null);
+  const [showSplash, setShowSplash]       = useState(true);
 
   const textareaRef = useRef(null);
   const bottomRef   = useRef(null);
-  useAutoGrow(textareaRef, question);
+  useAutoGrow(textareaRef, inputVal);
 
-  // Restore history
+  // Restore conversations from localStorage
   useEffect(() => {
     try {
-      const h = localStorage.getItem('campus_agent_history');
-      if (h) setHistory(JSON.parse(h));
+      const saved = localStorage.getItem('campus_convs');
+      if (saved) {
+        const convs = JSON.parse(saved);
+        setConversations(convs);
+        if (convs.length > 0) setActiveConvId(convs[0].id);
+      }
     } catch {}
   }, []);
+
+  // Persist conversations
+  useEffect(() => {
+    try { localStorage.setItem('campus_convs', JSON.stringify(conversations)); } catch {}
+  }, [conversations]);
 
   // Animated loading steps
   useEffect(() => {
@@ -208,44 +237,74 @@ export default function App() {
     return () => clearTimeout(t);
   }, [isLoading]);
 
-  const saveHistory = (item) => {
-    const updated = [item, ...history.filter(h => h.question !== item.question)].slice(0, 15);
-    setHistory(updated);
-    localStorage.setItem('campus_agent_history', JSON.stringify(updated));
+  // Scroll to bottom on new messages / loading
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversations, isLoading, error]);
+
+  const activeConv = conversations.find(c => c.id === activeConvId) ?? null;
+  const messages   = activeConv?.messages ?? [];
+  const isWelcome  = messages.length === 0 && !isLoading && !error;
+
+  const startNew = () => {
+    const id   = Date.now().toString();
+    const conv = { id, title: 'New chat', messages: [] };
+    setConversations(prev => [conv, ...prev]);
+    setActiveConvId(id);
+    setInputVal('');
+    setError(null);
   };
 
   const handleQuery = async (q) => {
-    const query = (q || question).trim();
+    const query = (q || inputVal).trim();
     if (!query || isLoading) return;
+
+    // Auto-create a conversation if none is active
+    let convId = activeConvId;
+    if (!convId || !conversations.find(c => c.id === convId)) {
+      const id   = Date.now().toString();
+      const conv = { id, title: query.slice(0, 45), messages: [] };
+      setConversations(prev => [conv, ...prev]);
+      setActiveConvId(id);
+      convId = id;
+    }
+
+    const userMsg = { role: 'user', content: query };
+    setConversations(prev => prev.map(c =>
+      c.id === convId
+        ? {
+            ...c,
+            title:    c.messages.length === 0 ? query.slice(0, 45) : c.title,
+            messages: [...c.messages, userMsg],
+          }
+        : c
+    ));
+
+    setInputVal('');
     setIsLoading(true);
     setError(null);
-    setResponse(null);
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/chat', {
-        method: 'POST',
+      const res = await fetch(`${API_URL}/chat`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: query }),
+        body:    JSON.stringify({ question: query }),
       });
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
-      const item = { question: query, ...data };
-      setResponse(item);
-      saveHistory(item);
+
+      const assistantMsg = { role: 'assistant', content: data.answer, meta: data };
+      setConversations(prev => prev.map(c =>
+        c.id === convId
+          ? { ...c, messages: [...c.messages, assistantMsg] }
+          : c
+      ));
     } catch (e) {
       setError(e.message || 'Failed to reach backend.');
     } finally {
       setIsLoading(false);
     }
   };
-
-  const startNew = () => {
-    setQuestion('');
-    setResponse(null);
-    setError(null);
-  };
-
-  const isWelcome = !response && !isLoading && !error;
 
   return (
     <div className="app-layout">
@@ -270,16 +329,16 @@ export default function App() {
           <IconPlus /> New chat
         </button>
 
-        <div className="history-label">Recent</div>
+        <div className="history-label">Conversations</div>
         <div className="history-list">
-          {history.map((h, i) => (
+          {conversations.map((conv) => (
             <div
-              key={i}
-              className="history-item"
-              title={h.question}
-              onClick={() => { setQuestion(h.question); setResponse(h); setError(null); }}
+              key={conv.id}
+              className={`history-item ${conv.id === activeConvId ? 'active' : ''}`}
+              title={conv.title}
+              onClick={() => { setActiveConvId(conv.id); setInputVal(''); setError(null); }}
             >
-              {h.question}
+              {conv.title}
             </div>
           ))}
         </div>
@@ -288,8 +347,8 @@ export default function App() {
       {/* ── Main ── */}
       <main className="main-chat">
         <header className="chat-header">
-          <span className="header-title">College Analytics Assistant</span>
-          <span className="header-badge">v1.4</span>
+          <span className="header-title">Campus Agent — College Discovery</span>
+          <span className="header-badge">v2.0</span>
         </header>
 
         <div className={`chat-messages ${isWelcome ? 'empty' : ''}`}>
@@ -301,14 +360,21 @@ export default function App() {
                 <div className="welcome-glow">
                   <img src="/logo.svg" alt="Campus Agent" width="44" height="44" />
                 </div>
-                <h1 className="welcome-title">What can I help with?</h1>
+                <h1 className="welcome-title">Find your college.</h1>
                 <p className="welcome-subtitle">
-                  Ask about college fees, NIRF rankings, scholarship eligibility, placements, and exam policies.
+                  Ask about rankings, fees, placements, hostels and more — across 1,200+ colleges.
                 </p>
-                <div className="centered-input-wrap">
+                <div className="suggestion-chips">
+                  {SUGGESTIONS.map((s) => (
+                    <button key={s} className="suggestion-chip" onClick={() => handleQuery(s)}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div className="centered-input-wrap" style={{ marginTop: 24 }}>
                   <InputBox
-                    value={question}
-                    onChange={setQuestion}
+                    value={inputVal}
+                    onChange={setInputVal}
                     onSubmit={() => handleQuery()}
                     isLoading={isLoading}
                     ref={textareaRef}
@@ -317,40 +383,36 @@ export default function App() {
               </div>
             )}
 
+            {/* Message thread for the active conversation */}
+            {messages.map((msg, i) =>
+              msg.role === 'user'
+                ? <UserBubble key={i} text={msg.content} />
+                : <AssistantBubble key={i} response={{ answer: msg.content, ...msg.meta }} />
+            )}
+
             {/* Loading */}
             {isLoading && (
-              <>
-                <UserBubble text={question} />
-                <div className="loading-block">
-                  {LOADING_STEPS.map((step, i) => {
-                    if (i > stepIdx) return null;
-                    const isDone   = i < stepIdx;
-                    const isActive = i === stepIdx;
-                    return (
-                      <div key={i} className={`log-line ${isDone ? 'done' : isActive ? 'active' : ''}`}>
-                        {isDone
-                          ? <div className="log-check"><IconCheck /></div>
-                          : <div className="log-pulse" />
-                        }
-                        {step}
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
+              <div className="loading-block">
+                {LOADING_STEPS.map((step, i) => {
+                  if (i > stepIdx) return null;
+                  const isDone   = i < stepIdx;
+                  const isActive = i === stepIdx;
+                  return (
+                    <div key={i} className={`log-line ${isDone ? 'done' : isActive ? 'active' : ''}`}>
+                      {isDone
+                        ? <div className="log-check"><IconCheck /></div>
+                        : <div className="log-pulse" />
+                      }
+                      {step}
+                    </div>
+                  );
+                })}
+              </div>
             )}
 
             {/* Error */}
             {error && !isLoading && (
               <div className="error-bubble">{error}</div>
-            )}
-
-            {/* Response */}
-            {response && !isLoading && (
-              <>
-                <UserBubble text={response.question} />
-                <AssistantBubble response={response} />
-              </>
             )}
 
           </div>
@@ -362,8 +424,8 @@ export default function App() {
           <div className="input-dock">
             <div className="input-dock-inner">
               <InputBox
-                value={question}
-                onChange={setQuestion}
+                value={inputVal}
+                onChange={setInputVal}
                 onSubmit={() => handleQuery()}
                 isLoading={isLoading}
                 ref={textareaRef}
