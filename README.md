@@ -1,62 +1,70 @@
-# Campus Agent — AI-Powered College Discovery Assistant
+# Jharkhand Campus Assistant — Enterprise College Discovery Agent
 
-Campus Agent is a high-performance, production-grade college analytics and discovery assistant built on **FastAPI**, **LangGraph**, **Google Gemini 2.5 Flash**, and **React**. Designed to resolve the complex discovery and filtering constraints faced by prospective college students, it grounds large language models in structured CSV databases, avoiding hallucination and offering transparent, source-cited responses.
+Jharkhand Campus Assistant is an enterprise-grade, high-performance college analytics and discovery assistant. Specifically built and optimized for the state of **Jharkhand, India**, the agent assists prospective students, parent organizations, and academic counselors in navigating the engineering college landscape of the region.
+
+The system is powered by a hybrid orchestration pipeline using **FastAPI**, **LangGraph**, **Groq (Llama-3.3-70b-versatile)**, and **React + Vite**. It implements a strict deterministic data-grounding layer to completely eliminate LLM hallucinations by serving source-cited answers directly from curated state-wide directories.
 
 ---
 
 ## 🏛️ System Architecture
 
-Campus Agent implements a hybrid routing pipeline that combines zero-latency deterministic routing with advanced LLM semantic classification, feeding into a single-pass graph workflow.
+The assistant employs a single-pass Directed Acyclic Graph (DAG) query routing system. Obvious search parameters (e.g. fees, scholarships) bypass LLM inference entirely (executing in **<2ms**), while complex natural language queries fall back to a semantic router.
 
 ```
-                   [ User Query ]
-                          │
-                          ▼
-            +───────────────────────────+
-            |        Intent Node        |
-            |  (Keyword Fast-Path +     |
-            |   Gemini Semantic Fallback|
-            +─────────────┬─────────────+
-                          │
-                  intent classified
-                          ▼
-            +───────────────────────────+
-            |     LangGraph Router      |
-            +──┬──────────┬──────────┬──+
-               │          │          │
-               ▼          ▼          ▼
-         [info_node]  [fees_node]  [sch_node] ...
-               │          │          │
-               +──────────┼──────────+
-                          │
-                  grounded context
-                          ▼
-            +───────────────────────────+
-            |      Gemini Explainer     |
-            +───────────────────────────+
-                          │
-                   markdown response
-                          ▼
-                    [ User UI ]
+                    [ User Query ]
+                           │
+                           ▼
+             +───────────────────────────+
+             |        Intent Node        |
+             |  (Keyword Fast-Path +     |
+             |    Groq Semantic Router)  |
+             +─────────────┬─────────────+
+                           │
+                   intent classified
+                           ▼
+             +───────────────────────────+
+             |     LangGraph Router      |
+             +──┬──────────┬──────────┬──+
+                │          │          │
+                ▼          ▼          ▼
+          [info_node]  [fees_node]  [sch_node] ...
+                │          │          │
+                +──────────┼──────────+
+                           │
+                   grounded context
+                           ▼
+             +───────────────────────────+
+             |       Groq Explainer      |
+             | (Llama-3.3-70b-versatile) |
+             +───────────────────────────+
+                           │
+                    markdown response
+                           ▼
+                     [ User UI ]
 ```
 
-### Routing & Node Execution Cycle
-1. **Hybrid Intent Routing**: The system parses the query. Obvious queries (e.g. including terms like `fees`, `scholarship`) bypass the LLM entirely, executing in **<2ms**. Ambiguous phrases trigger a semantic call to **Gemini 2.5 Flash** for intent classification.
-2. **Deterministic Data Query Engine (Python/Pandas)**: Once the intent is routed to a specific graph node, the system queries the corresponding CSV files. It handles complex sorting, top-N slicing, range filters, and comparison joins in memory using Pandas.
-3. **Structured Context Injection**: The output is compiled into a highly descriptive context header (detailing active filters, sort orders, and matching counts) followed by formatted CSV subset records.
-4. **Context-Grounded Explanation (LLM Answering)**: Gemini reads the user's question alongside the generated context. It runs under strict constraints: it can only format, explain, and summarize the data provided, eliminating hallucination.
+### Key Architectural Pillars
+1. **Hybrid Intent Routing**: Obvious queries bypass the LLM, whereas complex semantic requests are classified using the Groq router into domain-specific intents (`college_info`, `fees`, `scholarship`, `exam`).
+2. **Deterministic Data Engine (Pandas)**: The node processing query uses vectorized Pandas boolean masks to handle comparisons, fee caps, placement thresholds, and spatial filtering.
+3. **Structured Context Grounding**: Raw database query subsets are converted into structured markdown contexts and fed into the LLM alongside strict instructions prohibiting outside knowledge extrapolation.
+4. **Context-Grounded Explainer (Groq)**: The explainer reads the structured context and compiles it into a human-friendly format, complete with matching metadata pills and official source citations.
 
 ---
 
-## 💻 Tech Stack
+## 📊 Jharkhand Dataset Overview
 
-| Layer | Component | Description |
-|---|---|---|
-| **AI Orchestration** | [LangGraph](https://github.com/langchain-ai/langgraph) | Single-pass DAG workflow orchestration with conditional routing. |
-| **Generative LLM** | Google Gemini 2.5 Flash | Handles intent fallback and grounded natural language explanations. |
-| **API Backend** | FastAPI + Uvicorn | Asynchronous HTTP service with automatic OpenAPI generation. |
-| **Data Engine** | Pandas (Python) | High-speed, in-memory query, comparison, and constraint-filtering engine. |
-| **Frontend UI** | React + Vite | Fluid dark-mode layout utilizing glassmorphic aesthetics and smooth custom micro-animations. |
+The system operates on an enriched, validated dataset of **30 engineering colleges** in Jharkhand:
+- **IIT-Tier**: 1 Autonomous Institute (IIT ISM Dhanbad)
+- **NIT-Tier**: 1 National Institute of Technology (NIT Jamshedpur)
+- **IIIT-Tier**: 1 Indian Institute of Information Technology (IIIT Ranchi)
+- **Government Engineering Colleges**: 7 regional institutions (including Birsa Institute of Technology Sindri, GEC Dumka, GEC Palamu, etc.)
+- **State Universities**: 2 technical university hubs (Jharkhand University of Technology, Chhotanagpur Technical University)
+- **Private Colleges**: 18 private engineering colleges (including Birla Institute of Technology Mesra, Cambridge Institute of Technology Ranchi, RVS Jamshedpur, etc.)
+
+### Localized Features & Schema:
+- **Exams Supported**: JEE Advanced, JEE Main, and **Jharkhand Combined Entrance Competitive Examination (JCECE)**.
+- **Scholarships**: Integrated **e-Kalyan Jharkhand Post-Matric Scholarship**, Mukhyamantri Medha Chatravriti Yojana, and Birsa Munda Merit Scholarships.
+- **Local Recruiters**: Curated regional recruiters including **TATA Steel Jamshedpur**, **SAIL Bokaro**, **BCCL Dhanbad**, **CCL Ranchi**, and **NTPC Patratu**.
 
 ---
 
@@ -64,41 +72,34 @@ Campus Agent implements a hybrid routing pipeline that combines zero-latency det
 
 ```
 Campus_Assistant_Agent/
-├── app.py                  # FastAPI application entrypoint & API middleware configuration
-├── graph.py                # LangGraph workflow builder and execution state definitions
-├── nodes.py                # Graph node functions containing the Pandas filtering engine
-├── prompts.py              # Answering guidelines and intent classification prompts
-├── state.py                # Type-safe state context (TypedDict) passed between nodes
-├── requirements.txt        # Python package dependencies
+├── app.py                  # FastAPI server entrypoint & middleware config
+├── graph.py                # LangGraph DAG workflow definition
+├── nodes.py                # Graph nodes executing the Pandas query engine & Groq LLM
+├── prompts.py              # System prompts for intent routing and grounded answering
+├── state.py                # State schema (TypedDict) shared across nodes
+├── requirements.txt        # Python package dependencies (featuring langchain-groq)
 │
 ├── knowledge/              # Core Knowledge Base
-│   ├── preprocess.py       # Flat preprocessing script (drops duplicates, cleans schemas)
-│   ├── college_info.csv    # Directory of 1,203 colleges with ratings, city, state, types
-│   ├── fees.csv            # Tuition, hostel, mess, and one-time fee breakdowns
-│   ├── placements.csv      # Package averages (LPA), highest packages, placement ratios
-│   ├── hostel.csv          # Room types, mess requirements, and hostel details
-│   ├── admission.csv       # Document checklists and admission criteria
-│   ├── exam_rules.csv      # Academic policies and attendance requirements
+│   ├── preprocess.py       # Data cleaning and deduplication utility
+│   ├── validate_dataset.py # Validation constraints script (passes with 0 errors)
+│   ├── generate_dataset.py # Deterministic synthetic ML dataset generator (Jharkhand-only)
+│   ├── college_manifest.json# Manifest tracking all 30 colleges and official source links
+│   ├── aliases.json        # 51 fuzzy/shorthand aliases for Jharkhand colleges
+│   ├── college_info.csv    # Basic profiles, Scores, Types, and Cities
+│   ├── fees.csv            # Tuition, hostel, and mess fee structures
+│   ├── placements.csv      # Placement percentages, averages, and top recruiters
+│   ├── hostel.csv          # Hostel availability, capacity, and room types
+│   ├── admission.csv       # JCECE/JEE Main criteria and document checklists
+│   ├── exam_rules.csv      # Attendance policies and midterm/final regulations
 │   └── scholarship.csv     # 24,000+ historical student scholarship records
 │
-└── frontend/               # Single Page Application
+└── frontend/               # React Dashboard (Vite)
     ├── src/
-    │   ├── App.jsx         # ChatGPT-style multi-conversation manager and UI layout
-    │   ├── App.css         # Modern styling rules (glassmorphic panels, animated glows)
-    │   └── main.jsx        # App bootstrapper
-    └── .env.local          # Frontend environment variables
+    │   ├── App.jsx         # Chat layout, splash screens, and suggestions
+    │   ├── App.css         # Modern glassmorphism dark-mode UI styles
+    │   └── main.jsx        # Bootstrapper
+    └── .env.local          # Frontend API connection config
 ```
-
----
-
-## 🔍 Data-Grounding & Constraint Logic
-
-Unlike traditional RAG systems that rely on vector similarity (which frequently returns irrelevant chunks for quantitative constraints), Campus Agent uses a **deterministic query pipeline** inside `nodes.py`:
-
-*   **Comparison Queries**: When parsing `Compare A and B` or `A vs B`, the engine matches both colleges, performs a column-wise join across the directory, fee, and placement sheets, and produces a side-by-side metric matrix.
-*   **Quantitative Thresholds**: Recognizes fee limits (`under 2 lakh`) and placement minimums (`above 15 LPA`) using regex, applies corresponding boolean masks to Pandas dataframes, and sorts by rating.
-*   **Top-N Lists**: If the query includes `top 10` or `top 5`, the engine slices the sorted dataframe in Python *before* passing the text context to Gemini.
-*   **Fuzzy Matching Safeguards**: To prevent generic terms (like the word `"colleges"`) from triggering false positives against college names, the single-college lookup node uses discovery checks to skip the fuzzy matches for list/search requests.
 
 ---
 
@@ -107,34 +108,33 @@ Unlike traditional RAG systems that rely on vector similarity (which frequently 
 ### Prerequisites
 *   Python 3.10+
 *   Node.js 18+
-*   Google Gemini API Key
+*   Groq API Key (stored securely in `.env`)
 
 ### 1. Configuration
-Clone the repository and set up your backend environment:
-
+Clone the repository and define your environment variables:
 ```bash
-# Clone
+# Clone the repository
 git clone https://github.com/TheyCallMeAnirban/Campus_Assistant_Agent.git
 cd Campus_Assistant_Agent
 
-# Configure Gemini key
-echo GOOGLE_API_KEY=your_gemini_api_key_here > .env
+# Configure Groq API Key
+echo GROQ_API_KEY=gsk_your_api_key_here > .env
 ```
 
-### 2. Launch Backend Server
+### 2. Launch Backend API
 ```bash
-# Initialize virtual env
+# Initialize and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate      # On Windows
-# source .venv/bin/activate # On macOS/Linux
+.venv\Scripts\activate      # Windows
+# source .venv/bin/activate # macOS/Linux
 
-# Install dependencies
+# Install requirements
 pip install -r requirements.txt
 
-# Run FastAPI reload server
+# Run FastAPI server
 uvicorn app:app --reload
 ```
-The server starts at `http://127.0.0.1:8000`. You can inspect endpoints via the Swagger docs at `http://127.0.0.1:8000/docs`.
+The backend starts at `http://127.0.0.1:8000`. API docs are auto-exposed at `http://127.0.0.1:8000/docs`.
 
 ### 3. Launch Frontend Client
 ```bash
@@ -142,42 +142,36 @@ cd frontend
 npm install
 npm run dev
 ```
-The UI dashboard opens automatically at `http://localhost:5173`.
+The React Vite server launches at `http://localhost:5173/`.
 
 ---
 
-## 📡 API Spec
+## 📡 API Specification
 
 ### `POST /chat`
-Submits a user message and returns a grounded response from the graph.
+Submits a user message and returns a grounded response from the Graph.
 
-**Request Body:**
+#### Request Body
 ```json
 {
-  "question": "Compare NIT Jamshedpur and NIT Rourkela"
+  "question": "Compare NIT Jamshedpur and Birla Institute of Technology Mesra"
 }
 ```
 
-**Response Body:**
+#### Response Body
 ```json
 {
   "intent": "college_info",
-  "matched_entity": "NIT Jamshedpur vs NIT Rourkela",
-  "source": "NIRF / Official College Data 2025",
-  "answer": "### Comparison Matrix\n\nMetric | NIT Jamshedpur | NIT Rourkela\n---|---|---\nNIRF Rank | #101 | #37\nRating | 7.8 | 8.2\nAvg Fee | ₹186,000 | ₹191,000\nAvg Package | 14.65 LPA | 15.0 LPA\n..."
+  "matched_entity": "NIT Jamshedpur vs Birla Institute of Technology Mesra",
+  "source": "Synthetic Benchmark Corpus v1.0 (generated)",
+  "answer": "### Comparison Matrix\n\nMetric | NIT Jamshedpur | Birla Institute of Technology Mesra\n---|---|---\nCity | Jamshedpur | Ranchi\nType | nit_tier | private\nAcademic Score | 8.1 | 6.5\nAvg Fee | ₹196,000 | ₹261,000\nAvg Placement | 15.8 LPA | 8.8 LPA\n..."
 }
 ```
 
 ---
 
-## 🛡️ Robust Answering Rules (Strict Grounding)
+## 🛡️ Robust Answering Rules
 
-The Gemini generation is bound by strict prompt directives:
-1. **Never Invent Facts**: If a college is missing from the database (e.g. `BIT Sindri`), the system explicitly responds stating that the data is not available.
-2. **Context-Only Framing**: The explainer translates raw database logs into markdown paragraphs, bullet points, or lists without extrapolating information.
-3. **Statistical Framing**: When answering scholarship or admission chance questions based on historical records, the model presents the findings as a trend (e.g. *"Among comparable student profiles in the database, 82% were eligible..."*) to avoid representing it as an official university rule.
-
----
-
-## 📜 License
-This project is licensed under the MIT License.
+All Groq generation is bound by strict prompt directives:
+1. **Source Grounding**: Never answer using outside knowledge. If a college or state is not present in the loaded dataset, the system explicitly states that the requested data is unavailable.
+2. **Statistical Context**: Scholarship rates are evaluated as historical trends (e.g. *"Among matching historical student records in the database, 74% were eligible for scholarships..."*) rather than absolute university policy to ensure legal compliance.
