@@ -1,9 +1,11 @@
 import os
 import re
+import json
+from pathlib import Path
 from difflib import get_close_matches
 import pandas as pd
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 
 from prompts import INTENT_PROMPT, ANSWER_PROMPT
 from state import CollegeState
@@ -11,9 +13,9 @@ from state import CollegeState
 # Load environment variables
 load_dotenv()
 
-# Instantiate Gemini model
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+# Instantiate Groq model (llama-3.3-70b-versatile is the best versatile model on the free tier)
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
     temperature=0,
 )
 
@@ -28,20 +30,79 @@ admission_df = pd.read_csv(os.path.join(DATA_DIR, "admission.csv")) if os.path.e
 exam_rules_df = pd.read_csv(os.path.join(DATA_DIR, "exam_rules.csv")) if os.path.exists(os.path.join(DATA_DIR, "exam_rules.csv")) else None
 scholarship_df = pd.read_csv(os.path.join(DATA_DIR, "scholarship.csv")) if os.path.exists(os.path.join(DATA_DIR, "scholarship.csv")) else None
 
+# Load aliases, college map and context map dynamically
+ALIASES = {}
+if os.path.exists(os.path.join(DATA_DIR, "aliases.json")):
+    with open(os.path.join(DATA_DIR, "aliases.json"), "r", encoding="utf-8") as f:
+        ALIASES = json.load(f)
+
+COLLEGE_ID_MAP = {}
+_corpus_dir = Path(DATA_DIR) / "corpus"
+if _corpus_dir.exists():
+    for state_dir in _corpus_dir.iterdir():
+        if not state_dir.is_dir():
+            continue
+        for col_dir in state_dir.iterdir():
+            if not col_dir.is_dir():
+                continue
+            overview = col_dir / "overview.md"
+            if overview.exists():
+                # Extract college name from first heading in overview.md
+                try:
+                    first_line = overview.read_text(encoding="utf-8").splitlines()[0]
+                    col_name = first_line.lstrip("# ").strip()
+                    COLLEGE_ID_MAP[col_name] = {
+                        "path": str(col_dir),
+                        "state": state_dir.name,
+                        "id": col_dir.name,
+                    }
+                except Exception:
+                    pass
+
+CONTEXT_MAP = {}
+if os.path.exists(os.path.join(DATA_DIR, "context_map.json")):
+    with open(os.path.join(DATA_DIR, "context_map.json"), "r", encoding="utf-8") as f:
+        CONTEXT_MAP = json.load(f)
+
+
+def get_college_markdown_content(college_name: str, intent: str) -> str:
+    """Load intent-specific markdown files from the corpus directory."""
+    if college_name not in COLLEGE_ID_MAP:
+        return None
+    col_path = Path(COLLEGE_ID_MAP[college_name]["path"])
+
+    # context_map maps intent → list of filenames e.g. ["fees.md", "hostel.md"]
+    filenames = CONTEXT_MAP.get(intent, ["overview.md"])
+
+    parts = []
+    for fname in filenames:
+        fpath = col_path / fname
+        if fpath.exists():
+            try:
+                parts.append(fpath.read_text(encoding="utf-8"))
+            except Exception as e:
+                print(f"Error reading {fpath}: {e}")
+
+    return "\n\n---\n\n".join(parts) if parts else None
 
 
 def find_matching_college(query: str, college_names: list) -> str:
-    """Find matching college using substring matching and difflib token similarity."""
+    """Find matching college using aliases, substring matching and fuzzy matching."""
     query_clean = re.sub(r"[^\w\s]", "", query.lower())
     query_words = query_clean.split()
 
-    # 1. Substring match
+    # 1. Alias match with word boundaries
+    for alias_key, official_name in ALIASES.items():
+        if re.search(r'\b' + re.escape(alias_key) + r'\b', query_clean):
+            return official_name
+
+    # 2. Substring match
     for name in college_names:
         name_clean = re.sub(r"[^\w\s]", "", name.lower())
         if name_clean in query_clean or query_clean in name_clean:
             return name
 
-    # 2. Fuzzy match word-by-word with difflib
+    # 3. Fuzzy match word-by-word with difflib
     check_words = [w for w in query_words if len(w) >= 4]
     for name in college_names:
         name_words = re.sub(r"[^\w\s]", "", name.lower()).split()
@@ -69,15 +130,14 @@ def _format_colleges_list(subset: pd.DataFrame) -> str:
             parts.append(str(city))
         parts.append(str(row["state"]))
         parts.append(str(row["type"]))
-        nirf = row.get("nirf_rank")
-        if pd.notna(nirf):
-            parts.append(f"NIRF #{int(nirf)}")
-        parts.append(f"Rating {row['rating']}")
+        score = row.get("overall_score")
+        if score is not None and pd.notna(score):
+            parts.append(f"Score {score}/10")
         fees = row.get("fees_ug_inr")
-        if pd.notna(fees):
-            parts.append(f"Fees \u20b9{int(fees):,}")
+        if fees is not None and pd.notna(fees):
+            parts.append(f"Fees Rs.{int(fees):,}")
         pkg = row.get("placement_avg_lpa")
-        if pd.notna(pkg):
+        if pkg is not None and pd.notna(pkg):
             parts.append(f"Avg Pkg {pkg} LPA")
         lines.append(" | ".join(parts))
     return "\n".join(lines)
@@ -104,7 +164,7 @@ def intent_node(state: CollegeState):
         return {"intent": "scholarship"}
     if any(k in question for k in ["exam", "exams", "midterm", "final", "test", "grading", "attendance"]):
         return {"intent": "exam"}
-    if any(k in question for k in ["placement", "package", "lpa", "salary", "nirf", "rank", "rating",
+    if any(k in question for k in ["placement", "package", "lpa", "salary", "score", "rank", "rating",
                                     "located", "where", "city", "state", "hostel", "campus",
                                     "iit", "nit", "iiit", "iim", "show", "list"]):
         return {"intent": "college_info"}
@@ -124,7 +184,7 @@ def college_info_node(state: CollegeState):
     query_lower = query.lower()
     context = ""
     matched_entity = "Unknown"
-    source = "NIRF / Official College Data 2025"
+    source = "Synthetic Benchmark Corpus v1.0"
 
     if college_info_df is None:
         context = "College database not available."
@@ -172,10 +232,9 @@ def college_info_node(state: CollegeState):
                     ("State",            _v(r1, "state"),              _v(r2, "state")),
                     ("City",             _v(r1, "city"),               _v(r2, "city")),
                     ("Type",             _v(r1, "type"),               _v(r2, "type")),
-                    ("NIRF Rank",        _v(r1, "nirf_rank", lambda v: f"#{int(v)}"),
-                                         _v(r2, "nirf_rank", lambda v: f"#{int(v)}")),
-                    ("Rating",           _v(r1, "rating"),             _v(r2, "rating")),
-                    ("Avg Fee (\u20b9)",  _v(r1, "fees_ug_inr",      lambda v: f"{int(v):,}"),
+                    ("Academic Score",   _v(r1, "academic_score"),     _v(r2, "academic_score")),
+                    ("Overall Score",    _v(r1, "overall_score"),      _v(r2, "overall_score")),
+                    ("Avg Fee (Rs.)",    _v(r1, "fees_ug_inr",      lambda v: f"{int(v):,}"),
                                          _v(r2, "fees_ug_inr",      lambda v: f"{int(v):,}")),
                     ("Avg Placement",    _v(r1, "placement_avg_lpa", lambda v: f"{v} LPA"),
                                          _v(r2, "placement_avg_lpa", lambda v: f"{v} LPA")),
@@ -209,24 +268,31 @@ def college_info_node(state: CollegeState):
         if not context and not _is_discovery:
             matched_college = find_matching_college(query, college_names)
             if matched_college:
-                row_info = college_info_df[college_info_df["college"] == matched_college].iloc[0]
-                context_parts  = ["College Details:", format_row(row_info)]
-                matched_entity = matched_college
-                source         = row_info.get("source", "NIRF / Official College Data 2025")
+                # Try loading markdown context first
+                md_context = get_college_markdown_content(matched_college, "college_info")
+                if md_context:
+                    context = md_context
+                    matched_entity = matched_college
+                    source = "Official Website"
+                else:
+                    row_info = college_info_df[college_info_df["college"] == matched_college].iloc[0]
+                    context_parts  = ["College Details:", format_row(row_info)]
+                    matched_entity = matched_college
+                    source         = row_info.get("source", "NIRF / Official College Data 2025")
 
-                # Enrich with domain-specific detail (only 5 colleges have this)
-                for df_, label in [
-                    (fees_df,      "Detailed Fee Breakdown"),
-                    (placements_df,"Placement Details"),
-                    (hostel_df,    "Hostel Details"),
-                    (admission_df, "Admission Details"),
-                ]:
-                    if df_ is not None:
-                        sub = df_[df_["college"] == matched_college]
-                        if not sub.empty:
-                            context_parts += [f"\n{label}:", format_row(sub.iloc[0])]
+                    # Enrich with domain-specific detail (only 5 colleges have this)
+                    for df_, label in [
+                        (fees_df,      "Detailed Fee Breakdown"),
+                        (placements_df,"Placement Details"),
+                        (hostel_df,    "Hostel Details"),
+                        (admission_df, "Admission Details"),
+                    ]:
+                        if df_ is not None:
+                            sub = df_[df_["college"] == matched_college]
+                            if not sub.empty:
+                                context_parts += [f"\n{label}:", format_row(sub.iloc[0])]
 
-                context = "\n".join(context_parts)
+                    context = "\n".join(context_parts)
 
         # ── 3. Filter / discover path ─────────────────────────────────────
         if not context:
@@ -242,9 +308,12 @@ def college_info_node(state: CollegeState):
             if not context:
                 # Institute type filter
                 type_map = {
-                    "iiit": "IIIT", "iit": "IIT", "nit": "NIT",
-                    "iim": "IIM",   "aiims": "AIIMS", "bits": "BITS", "nlu": "NLU",
-                    "central university": "Central University",
+                    "iiit": "iiit_tier",
+                    "iit": "iit_tier",
+                    "nit": "nit_tier",
+                    "government": "government",
+                    "private": "private",
+                    "state university": "state_university",
                 }
                 matched_type = None
                 for kw, val in type_map.items():
@@ -253,8 +322,8 @@ def college_info_node(state: CollegeState):
                         matched_type = val
                         break
                 if not matched_type and "engineering" in query_lower:
-                    subset       = subset[subset["type"].isin(["Engineering", "IIT", "NIT", "IIIT"])]
-                    matched_type = "Engineering"
+                    subset       = subset[subset["type"].isin(["iit_tier", "nit_tier", "iiit_tier", "government", "state_university", "private"])]
+                    matched_type = "engineering"
 
                 # State filter
                 matched_state = next(
@@ -277,7 +346,7 @@ def college_info_node(state: CollegeState):
                     r"(?:under|below|less\s+than|within)\s*[\u20b9rs.\s]*([\d,.]+)\s*(lakh|lac|l\b|crore|cr)?",
                     query_lower,
                 )
-                sort_col    = "rating"
+                sort_col    = "overall_score"
                 sort_asc    = False
                 fee_cap     = None   # track for context label
                 pkg_floor   = None   # track for context label
@@ -290,7 +359,7 @@ def college_info_node(state: CollegeState):
                     elif "lakh" in unit or "lac" in unit or (unit == "l") or fee_cap < 500:
                         fee_cap *= 100_000
                     subset   = subset[subset["fees_ug_inr"] <= fee_cap]
-                    sort_col = "rating"
+                    sort_col = "overall_score"
 
                 # Placement constraint: "above / over X lpa"
                 pkg_match = re.search(
@@ -324,7 +393,7 @@ def college_info_node(state: CollegeState):
                     if pkg_floor is not None:
                         criteria.append(f"Avg placement package ≥ {pkg_floor} LPA")
                     criteria_str = " | ".join(criteria) if criteria else "all colleges"
-                    sort_label = "average placement package" if sort_col == "placement_avg_lpa" else "rating"
+                    sort_label = "average placement package" if sort_col == "placement_avg_lpa" else "overall score"
 
                     context = (
                         f"Filter applied: {criteria_str}\n"
@@ -380,10 +449,16 @@ def fees_node(state: CollegeState):
         matched_college = find_matching_college(query, college_names)
 
         if matched_college:
-            row = fees_df[fees_df["college"] == matched_college].iloc[0]
-            context = f"Tuition & Hostel Fees:\n{format_row(row)}"
-            matched_entity = matched_college
-            source = row.get("source", "Official Fee Structure 2025-26")
+            md_context = get_college_markdown_content(matched_college, "fees")
+            if md_context:
+                context = md_context
+                matched_entity = matched_college
+                source = "Official Fee Structure"
+            else:
+                row = fees_df[fees_df["college"] == matched_college].iloc[0]
+                context = f"Tuition & Hostel Fees:\n{format_row(row)}"
+                matched_entity = matched_college
+                source = row.get("source", "Official Fee Structure 2025-26")
         else:
             context = "College fee information could not be found for the specified college."
 
@@ -399,7 +474,17 @@ def scholarship_node(state: CollegeState):
     matched_entity = "Scholarship Statistics"
     source = "Historical Admissions Dataset"
 
-    if scholarship_df is not None:
+    # Try mapping specific college scholarships first
+    college_names = college_info_df["college"].tolist() if college_info_df is not None else []
+    matched_college = find_matching_college(query, college_names)
+    if matched_college:
+        md_context = get_college_markdown_content(matched_college, "scholarship")
+        if md_context:
+            context = md_context
+            matched_entity = matched_college
+            source = "Official Scholarship Schemes"
+
+    if not context and scholarship_df is not None:
         numbers = [int(n) for n in re.findall(r"\d+", query_lower)]
         board_score = next((n for n in numbers if 40 <= n <= 100), None)
 
@@ -456,8 +541,14 @@ def exam_node(state: CollegeState):
         
         subset = exam_rules_df
         if matched_college:
-            subset = subset[subset["college"] == matched_college]
-            matched_entity = matched_college
+            md_context = get_college_markdown_content(matched_college, "exam")
+            if md_context:
+                context = md_context
+                matched_entity = matched_college
+                source = "Official Academic Regulations"
+            else:
+                subset = subset[subset["college"] == matched_college]
+                matched_entity = matched_college
 
         exam_type = None
         if "midterm" in query_lower or "mid semester" in query_lower:

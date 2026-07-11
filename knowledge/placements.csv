@@ -1,6 +1,31 @@
-college,average_package,highest_package,placement_percentage,source
-IIT (ISM) Dhanbad,21.5,144.0,94.57,Official IIT (ISM) Dhanbad Placement Report 2024-25
-IIT Bhilai,14.0,48.0,85.0,Official IIT Bhilai Placement Statistics 2024
-NIT Jamshedpur,14.65,144.0,94.57,Official NIT Jamshedpur Placement Cell Brochure 2024-25
-NIT Rourkela,15.0,120.0,96.0,Official NIT Rourkela Placement Report 2024
-IIT Kharagpur,22.0,240.0,90.0,Official IIT Kharagpur Career Development Centre Report 2024-25
+college,average_package,highest_package,placement_percentage,top_recruiters,source
+IIT (ISM) Dhanbad,22.9,324.9,96.5,DE Shaw; Adobe; Google; Schlumberger; SAIL,Synthetic Benchmark Corpus v1.0 (generated)
+NIT Jamshedpur,16.0,143.4,90.8,HCL; Tata Motors; Deloitte; TCS; Amazon,Synthetic Benchmark Corpus v1.0 (generated)
+IIIT Ranchi,12.9,88.6,82.6,Swiggy; Wipro; Jio; Razorpay; Amazon,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Institute of Technology,5.0,19.7,57.8,L&T; HEC Ranchi; Infosys; BCCL Dhanbad; Wipro,Synthetic Benchmark Corpus v1.0 (generated)
+Dumka Engineering College,5.3,24.3,63.2,NTPC Patratu; HEC Ranchi; L&T; Wipro; TCS,Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Palamu,5.5,26.2,64.7,TCS; CCL Ranchi; Usha Martin; Wipro; L&T,Synthetic Benchmark Corpus v1.0 (generated)
+Ramgarh Engineering College,5.2,22.9,61.8,CCL Ranchi; Usha Martin; Wipro; JSW Steel; TCS,Synthetic Benchmark Corpus v1.0 (generated)
+Chaibasa Engineering College,5.2,20.6,58.0,BCCL Dhanbad; Infosys; L&T; JSW Steel; Usha Martin,Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Godda,5.0,19.6,57.6,TCS; Infosys; BCCL Dhanbad; NTPC Patratu; TATA Steel,Synthetic Benchmark Corpus v1.0 (generated)
+Cambridge Institute of Technology,5.7,25.1,54.1,Capgemini; Infosys; Wipro; Cognizant; TCS,Synthetic Benchmark Corpus v1.0 (generated)
+RTC Institute of Technology,6.1,33.8,65.4,Cognizant; Tech Mahindra; TCS; Capgemini; Wipro,Synthetic Benchmark Corpus v1.0 (generated)
+RVS College of Engineering and Technology,5.7,25.9,55.4,Genpact; TCS; Capgemini; Wipro; Tech Mahindra,Synthetic Benchmark Corpus v1.0 (generated)
+Jharkhand University of Technology,4.4,16.5,51.3,Cognizant; Wipro; SAIL; JSPL; Infosys,Synthetic Benchmark Corpus v1.0 (generated)
+Birla Institute of Technology Mesra,5.4,23.1,52.8,Cognizant; Accenture; Genpact; TCS; Tech Mahindra,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Munda Institute of Technology,5.3,25.4,64.9,NTPC Patratu; L&T; CCL Ranchi; TCS; HEC Ranchi,Synthetic Benchmark Corpus v1.0 (generated)
+Bokaro Institute of Technology,5.6,25.8,56.1,Tech Mahindra; Genpact; Capgemini; Infosys; Cognizant,Synthetic Benchmark Corpus v1.0 (generated)
+Hazaribagh College of Engineering,6.1,31.6,61.9,TCS; Accenture; Cognizant; Wipro; Capgemini,Synthetic Benchmark Corpus v1.0 (generated)
+Deoghar Institute of Technology,6.2,34.0,64.8,Capgemini; Genpact; TCS; Wipro; Infosys,Synthetic Benchmark Corpus v1.0 (generated)
+Giridih Engineering College,5.6,25.0,54.6,Infosys; Wipro; Capgemini; Accenture; Tech Mahindra,Synthetic Benchmark Corpus v1.0 (generated)
+Koderma Institute of Science & Technology,5.2,20.7,49.8,Cognizant; TCS; Genpact; Accenture; Infosys,Synthetic Benchmark Corpus v1.0 (generated)
+Koyla Anchaldhan College of Engineering,5.8,29.3,60.5,Cognizant; TCS; Accenture; Genpact; Capgemini,Synthetic Benchmark Corpus v1.0 (generated)
+Chhotanagpur Technical University,4.5,17.7,52.8,TCS; JSPL; TATA Motors; Cognizant; Vedanta,Synthetic Benchmark Corpus v1.0 (generated)
+Santhal Pargana Engineering College,5.3,21.7,50.9,Genpact; TCS; Tech Mahindra; Infosys; Wipro,Synthetic Benchmark Corpus v1.0 (generated)
+Steel City Technical Campus,6.4,36.7,67.4,Capgemini; Tech Mahindra; Infosys; Cognizant; Wipro,Synthetic Benchmark Corpus v1.0 (generated)
+Subarnarekha Institute of Technology,6.2,34.7,66.0,TCS; Capgemini; Wipro; Accenture; Cognizant,Synthetic Benchmark Corpus v1.0 (generated)
+Jamshedpur Technical Institute,5.4,23.0,52.6,Capgemini; Cognizant; TCS; Wipro; Tech Mahindra,Synthetic Benchmark Corpus v1.0 (generated)
+Ranchi College of Engineering & Technology,5.5,25.4,56.1,Genpact; Accenture; Capgemini; TCS; Cognizant,Synthetic Benchmark Corpus v1.0 (generated)
+Netaji Subhas University Department of Engineering,6.1,33.8,65.3,Cognizant; Infosys; Wipro; Accenture; TCS,Synthetic Benchmark Corpus v1.0 (generated)
+Radha Govind University College of Engineering,6.4,36.0,66.3,Capgemini; Accenture; Tech Mahindra; TCS; Cognizant,Synthetic Benchmark Corpus v1.0 (generated)
+Usha Martin University Faculty of Engineering,5.2,20.1,48.6,Genpact; Infosys; Wipro; Tech Mahindra; Cognizant,Synthetic Benchmark Corpus v1.0 (generated)
