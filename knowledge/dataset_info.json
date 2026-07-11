@@ -1,0 +1,17 @@
+{
+  "dataset_type": "synthetic",
+  "version": "1.0",
+  "generator_seed": 42,
+  "generated_on": "2026-07-12",
+  "college_count": 30,
+  "type_distribution": {
+    "iit_tier": 1,
+    "nit_tier": 1,
+    "iiit_tier": 1,
+    "government": 7,
+    "state_university": 2,
+    "private": 18
+  },
+  "states_covered": 1,
+  "disclaimer": "This dataset contains entirely fictional or semi-fictionalized institution names and synthetic statistics. It is intended solely for demonstration, benchmarking, and evaluation of retrieval-augmented conversational AI systems. It does not represent any real institution, its fees, placements, or rankings."
+}

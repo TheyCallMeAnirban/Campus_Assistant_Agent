@@ -4,12 +4,12 @@ import './App.css';
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
 
 const SUGGESTIONS = [
-  'Top 10 NITs in India',
-  'Compare NIT Jamshedpur and NIT Rourkela',
-  'Show colleges in Karnataka',
-  'Colleges under ₹2 lakh fees',
-  'Show IIITs in India',
-  'Colleges with average package above 15 LPA',
+  'Top engineering colleges in Jharkhand',
+  'Compare NIT Jamshedpur and Birla Institute of Technology Mesra',
+  'Show government colleges in Jharkhand',
+  'Colleges under Rs. 1.5 lakh fees',
+  'Hostel and mess details of BIT Sindri',
+  'Colleges with average package above 8 LPA',
 ];
 
 // ── Splash Screen ─────────────────────────────────────────────
@@ -88,7 +88,7 @@ function SplashScreen({ onDone }) {
       {/* Wordmark */}
       <div className="splash-wordmark">
         <img src="/logo.svg" alt="" width="22" height="22" />
-        <span>Campus Agent</span>
+        <span>Jharkhand Campus Agent</span>
       </div>
 
       {/* Bottom progress line */}
@@ -322,7 +322,7 @@ export default function App() {
           <div className="sidebar-brand-icon">
             <img src="/logo.svg" alt="Campus Agent logo" width="18" height="18" />
           </div>
-          <span className="sidebar-brand-text">Campus Agent</span>
+          <span className="sidebar-brand-text">Campus Agent (JH)</span>
         </div>
 
         <button className="new-chat-btn" onClick={startNew}>
@@ -347,7 +347,7 @@ export default function App() {
       {/* ── Main ── */}
       <main className="main-chat">
         <header className="chat-header">
-          <span className="header-title">Campus Agent — College Discovery</span>
+          <span className="header-title">Jharkhand Campus Assistant — College Discovery</span>
           <span className="header-badge">v2.0</span>
         </header>
 
@@ -362,7 +362,7 @@ export default function App() {
                 </div>
                 <h1 className="welcome-title">Find your college.</h1>
                 <p className="welcome-subtitle">
-                  Ask about rankings, fees, placements, hostels and more — across 1,200+ colleges.
+                  Ask about rankings, fees, placements, hostels and more — specifically for Jharkhand engineering colleges.
                 </p>
                 <div className="suggestion-chips">
                   {SUGGESTIONS.map((s) => (

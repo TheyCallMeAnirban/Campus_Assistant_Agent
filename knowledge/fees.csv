@@ -1,6 +1,31 @@
 college,tuition_fee,hostel_fee,mess_fee,one_time_fee,security_deposit,total_fee,academic_year,source
-IIT (ISM) Dhanbad,200000.0,30000.0,25000.0,15000.0,10000.0,280000.0,2025-26,Official IIT (ISM) Dhanbad Fee Structure Booklet 2025
-IIT Bhilai,220000.0,28000.0,24000.0,12000.0,8000.0,292000.0,2025-26,Official IIT Bhilai Fee Structure Booklet 2025
-NIT Jamshedpur,125000.0,24000.0,22000.0,10000.0,5000.0,186000.0,2025-26,Official NIT Jamshedpur Fee Structure Page 2025
-NIT Rourkela,125000.0,26000.0,23000.0,11000.0,6000.0,191000.0,2025-26,Official NIT Rourkela Fee Notice 2025
-IIT Kharagpur,200000.0,35000.0,27000.0,16000.0,10000.0,288000.0,2025-26,Official IIT Kharagpur Fee Rules 2025
+IIT (ISM) Dhanbad,234000,48000,35000,12000,7000,336000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+NIT Jamshedpur,199000,32000,26000,10000,6000,273000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+IIIT Ranchi,146000,25000,22000,7000,4000,204000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Institute of Technology,92000,14000,14000,5000,3000,128000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Dumka Engineering College,107000,16000,16000,5000,3000,147000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Palamu,111000,17000,17000,6000,3000,154000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Ramgarh Engineering College,103000,16000,16000,5000,3000,143000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Chaibasa Engineering College,92000,14000,15000,5000,3000,129000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Godda,91000,14000,14000,5000,3000,127000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Cambridge Institute of Technology,176000,26000,21000,9000,5000,237000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+RTC Institute of Technology,222000,32000,25000,11000,7000,297000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+RVS College of Engineering and Technology,182000,26000,21000,9000,5000,243000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Jharkhand University of Technology,98000,13000,14000,5000,3000,133000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Birla Institute of Technology Mesra,171000,25000,20000,9000,5000,230000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Munda Institute of Technology,112000,17000,17000,6000,3000,155000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Bokaro Institute of Technology,185000,27000,22000,9000,6000,249000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Hazaribagh College of Engineering,207000,30000,24000,10000,6000,277000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Deoghar Institute of Technology,219000,32000,25000,11000,7000,294000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Giridih Engineering College,178000,26000,21000,9000,5000,239000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Koderma Institute of Science & Technology,159000,23000,19000,8000,5000,214000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Koyla Anchaldhan College of Engineering,202000,29000,23000,10000,6000,270000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Chhotanagpur Technical University,102000,13000,15000,5000,3000,138000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Santhal Pargana Engineering College,164000,24000,20000,8000,5000,221000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Steel City Technical Campus,230000,33000,26000,12000,7000,308000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Subarnarekha Institute of Technology,224000,32000,25000,11000,7000,299000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Jamshedpur Technical Institute,171000,25000,20000,9000,5000,230000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Ranchi College of Engineering & Technology,184000,27000,22000,9000,6000,248000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Netaji Subhas University Department of Engineering,221000,32000,25000,11000,7000,296000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Radha Govind University College of Engineering,225000,32000,25000,11000,7000,300000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)
+Usha Martin University Faculty of Engineering,154000,23000,19000,8000,5000,209000,2025-26,Synthetic Benchmark Corpus v1.0 (generated)

@@ -1,0 +1,10 @@
+{
+  "fees": ["fees.md", "hostel.md"],
+  "scholarship": ["scholarships.md", "fees.md"],
+  "exam": ["admissions.md", "overview.md"],
+  "college_info": ["overview.md", "admissions.md", "placements.md", "campus.md"],
+  "hostel": ["hostel.md"],
+  "placements": ["placements.md"],
+  "campus": ["campus.md"],
+  "faq": ["faq.md"]
+}

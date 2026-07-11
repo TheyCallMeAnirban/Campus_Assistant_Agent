@@ -1,6 +1,31 @@
-college,hostel_available,hostel_fee,room_type,mess_required,source
-IIT (ISM) Dhanbad,Yes,30000.0,Double sharing,Yes,Official IIT (ISM) Dhanbad Hostel Information Page
-IIT Bhilai,Yes,28000.0,Double sharing,Yes,Official IIT Bhilai Student Housing Page
-NIT Jamshedpur,Yes,24000.0,Double sharing,Yes,Official NIT Jamshedpur Hostel Information Page
-NIT Rourkela,Yes,26000.0,Single sharing,Yes,Official NIT Rourkela Halls of Residence Rules
-IIT Kharagpur,Yes,35000.0,Single sharing,Yes,Official IIT Kharagpur Hall Management Centre Page
+college,hostel_available,hostel_fee,mess_fee,hostel_capacity,room_type,source
+IIT (ISM) Dhanbad,Yes,48000,35000,4559,Single,Synthetic Benchmark Corpus v1.0 (generated)
+NIT Jamshedpur,Yes,32000,26000,3547,Single,Synthetic Benchmark Corpus v1.0 (generated)
+IIIT Ranchi,Yes,25000,22000,1343,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Institute of Technology,Yes,14000,14000,1606,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Dumka Engineering College,Yes,16000,16000,1791,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Palamu,Yes,17000,17000,1929,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Ramgarh Engineering College,Yes,16000,16000,1344,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Chaibasa Engineering College,Yes,14000,15000,1425,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Government Engineering College Godda,Yes,14000,14000,1449,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Cambridge Institute of Technology,Yes,26000,21000,1438,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+RTC Institute of Technology,Yes,32000,25000,2667,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+RVS College of Engineering and Technology,Yes,26000,21000,1556,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Jharkhand University of Technology,Yes,13000,14000,1110,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Birla Institute of Technology Mesra,Yes,25000,20000,1779,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Birsa Munda Institute of Technology,Yes,17000,17000,1741,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Bokaro Institute of Technology,Yes,27000,22000,1370,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Hazaribagh College of Engineering,Yes,30000,24000,1756,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Deoghar Institute of Technology,Yes,32000,25000,2660,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Giridih Engineering College,Yes,26000,21000,1362,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Koderma Institute of Science & Technology,Yes,23000,19000,1169,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Koyla Anchaldhan College of Engineering,Yes,29000,23000,2116,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Chhotanagpur Technical University,Yes,13000,15000,1380,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Santhal Pargana Engineering College,Yes,24000,20000,1716,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Steel City Technical Campus,Yes,33000,26000,2205,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Subarnarekha Institute of Technology,Yes,32000,25000,1893,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Jamshedpur Technical Institute,Yes,25000,20000,1321,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Ranchi College of Engineering & Technology,Yes,27000,22000,2289,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Netaji Subhas University Department of Engineering,Yes,32000,25000,2428,Single,Synthetic Benchmark Corpus v1.0 (generated)
+Radha Govind University College of Engineering,Yes,32000,25000,3115,Shared (3-seater),Synthetic Benchmark Corpus v1.0 (generated)
+Usha Martin University Faculty of Engineering,Yes,23000,19000,1142,Shared (2-seater),Synthetic Benchmark Corpus v1.0 (generated)
