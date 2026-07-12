@@ -132,6 +132,14 @@ function useAutoGrow(ref, value) {
   }, [ref, value]);
 }
 
+// ── Format duration helper ─────────────────────────────────────
+function formatDuration(seconds) {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
+}
+
 // ── Main App ───────────────────────────────────────────────────
 export default function App() {
   // Each conversation: { id: string, title: string, messages: [{role, content, meta?}] }
@@ -142,6 +150,7 @@ export default function App() {
   const [stepIdx, setStepIdx]             = useState(0);
   const [error, setError]                 = useState(null);
   const [showSplash, setShowSplash]       = useState(true);
+  const [retryAfter, setRetryAfter]       = useState(0);
 
   const textareaRef = useRef(null);
   const bottomRef   = useRef(null);
@@ -180,6 +189,13 @@ export default function App() {
     return () => clearTimeout(t);
   }, [isLoading]);
 
+  // Rate-limit countdown
+  useEffect(() => {
+    if (retryAfter <= 0) return;
+    const t = setInterval(() => setRetryAfter(s => s <= 1 ? 0 : s - 1), 1000);
+    return () => clearInterval(t);
+  }, [retryAfter > 0]);
+
   // Scroll to bottom on new messages / loading
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -200,7 +216,7 @@ export default function App() {
 
   const handleQuery = async (q) => {
     const query = (q || inputVal).trim();
-    if (!query || isLoading) return;
+    if (!query || isLoading || retryAfter > 0) return;
 
     // Auto-create a conversation if none is active
     let convId = activeConvId;
@@ -233,6 +249,11 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ question: query }),
       });
+      if (res.status === 429) {
+        const data = await res.json();
+        setRetryAfter(data?.detail?.retry_after ?? 60);
+        return;
+      }
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
 
@@ -353,6 +374,20 @@ export default function App() {
               </div>
             )}
 
+            {/* Rate-limit banner */}
+            {retryAfter > 0 && (
+              <div className="rate-limit-banner">
+                <span className="rate-limit-icon">⏳</span>
+                <span>
+                  Groq tokens exhausted — renews in{' '}
+                  <strong>{formatDuration(retryAfter)}</strong>
+                </span>
+                <div className="rate-limit-bar">
+                  <div className="rate-limit-bar-fill" style={{ animationDuration: `${retryAfter}s` }} />
+                </div>
+              </div>
+            )}
+
             {/* Error */}
             {error && !isLoading && (
               <div className="error-bubble">{error}</div>
@@ -364,13 +399,13 @@ export default function App() {
 
         {/* Docked input (after welcome) */}
         {!isWelcome && (
-          <div className="input-dock">
+        <div className="input-dock">
             <div className="input-dock-inner">
               <InputBox
                 value={inputVal}
                 onChange={setInputVal}
                 onSubmit={() => handleQuery()}
-                isLoading={isLoading}
+                isLoading={isLoading || retryAfter > 0}
                 ref={textareaRef}
               />
               <div className="input-hint">Enter to send · Shift+Enter for new line</div>
