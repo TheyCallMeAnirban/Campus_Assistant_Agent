@@ -1,7 +1,6 @@
 import os
 import re
 import json
-from pathlib import Path
 from difflib import get_close_matches
 import pandas as pd
 from dotenv import load_dotenv
@@ -37,24 +36,26 @@ if os.path.exists(os.path.join(DATA_DIR, "aliases.json")):
         ALIASES = json.load(f)
 
 COLLEGE_ID_MAP = {}
-_corpus_dir = Path(DATA_DIR) / "corpus"
-if _corpus_dir.exists():
-    for state_dir in _corpus_dir.iterdir():
-        if not state_dir.is_dir():
+_corpus_dir = os.path.join(DATA_DIR, "corpus")
+if os.path.exists(_corpus_dir):
+    for state_name in os.listdir(_corpus_dir):
+        state_dir = os.path.join(_corpus_dir, state_name)
+        if not os.path.isdir(state_dir):
             continue
-        for col_dir in state_dir.iterdir():
-            if not col_dir.is_dir():
+        for col_name in os.listdir(state_dir):
+            col_dir = os.path.join(state_dir, col_name)
+            if not os.path.isdir(col_dir):
                 continue
-            overview = col_dir / "overview.md"
-            if overview.exists():
-                # Extract college name from first heading in overview.md
+            overview = os.path.join(col_dir, "overview.md")
+            if os.path.exists(overview):
                 try:
-                    first_line = overview.read_text(encoding="utf-8").splitlines()[0]
-                    col_name = first_line.lstrip("# ").strip()
-                    COLLEGE_ID_MAP[col_name] = {
-                        "path": str(col_dir),
-                        "state": state_dir.name,
-                        "id": col_dir.name,
+                    with open(overview, "r", encoding="utf-8") as f:
+                        first_line = f.readline()
+                    col_name_title = first_line.lstrip("# ").strip()
+                    COLLEGE_ID_MAP[col_name_title] = {
+                        "path": col_dir,
+                        "state": state_name,
+                        "id": col_name,
                     }
                 except Exception:
                     pass
@@ -69,17 +70,18 @@ def get_college_markdown_content(college_name: str, intent: str) -> str:
     """Load intent-specific markdown files from the corpus directory."""
     if college_name not in COLLEGE_ID_MAP:
         return None
-    col_path = Path(COLLEGE_ID_MAP[college_name]["path"])
+    col_path = COLLEGE_ID_MAP[college_name]["path"]
 
     # context_map maps intent → list of filenames e.g. ["fees.md", "hostel.md"]
     filenames = CONTEXT_MAP.get(intent, ["overview.md"])
 
     parts = []
     for fname in filenames:
-        fpath = col_path / fname
-        if fpath.exists():
+        fpath = os.path.join(col_path, fname)
+        if os.path.exists(fpath):
             try:
-                parts.append(fpath.read_text(encoding="utf-8"))
+                with open(fpath, "r", encoding="utf-8") as f:
+                    parts.append(f.read())
             except Exception as e:
                 print(f"Error reading {fpath}: {e}")
 
@@ -239,9 +241,6 @@ def college_info_node(state: CollegeState):
                     ("Avg Placement",    _v(r1, "placement_avg_lpa", lambda v: f"{v} LPA"),
                                          _v(r2, "placement_avg_lpa", lambda v: f"{v} LPA")),
                 ]
-                # Enrich with detailed fee data where available
-                for cn, df_ in [(c1, fees_df), (c2, fees_df)]:
-                    pass  # detailed breakdown available via fees_node if needed
 
                 header    = f"{'Metric':<22} | {c1:<32} | {c2:<32}"
                 separator = "-" * len(header)

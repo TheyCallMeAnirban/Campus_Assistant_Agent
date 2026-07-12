@@ -3,18 +3,24 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
 
 # Environment
 .env
 
-# Node
+# Node & Build
 node_modules/
 dist/
+.vite/
+.cache/
 
-# VS Code
+# Project Caching
+knowledge/cache/
+knowledge/pipeline/
+knowledge/generated/
+
+# VS Code & OS
 .vscode/
-
-# OS
 .DS_Store
 Thumbs.db
 

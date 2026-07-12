@@ -617,38 +617,23 @@ body {
 
 /* ── Icon stage ── */
 .splash-stage {
-  position: relative;
-  width: 72px;
-  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
 }
 
-/* All icons stacked, default invisible */
-.splash-icon {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  color: rgba(255, 255, 255, 0.75);
-  opacity: 0;
+.splash-logo-pulse {
+  width: 64px;
+  height: 64px;
+  animation: logoPulse 1.6s ease-in-out infinite;
 }
 
-/*
- * Each icon: 5s cycle, 1.25s visible slot per icon.
- * Keyframes: fade+slide up → hold → fade+slide out.
- * Stagger: 0s / 1.25s / 2.5s / 3.75s
- */
-@keyframes iconCycle {
-  0%    { opacity: 0;   transform: translateY(8px)  scale(0.9); }
-  7%    { opacity: 1;   transform: translateY(0)    scale(1);   }
-  22%   { opacity: 1;   transform: translateY(0)    scale(1);   }
-  29%   { opacity: 0;   transform: translateY(-8px) scale(0.9); }
-  100%  { opacity: 0;   transform: translateY(-8px) scale(0.9); }
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.1); opacity: 1; }
 }
-
-.splash-icon--1 { animation: iconCycle 5s cubic-bezier(0.4,0,0.2,1) infinite 0s;    }
-.splash-icon--2 { animation: iconCycle 5s cubic-bezier(0.4,0,0.2,1) infinite 1.25s; }
-.splash-icon--3 { animation: iconCycle 5s cubic-bezier(0.4,0,0.2,1) infinite 2.5s;  }
-.splash-icon--4 { animation: iconCycle 5s cubic-bezier(0.4,0,0.2,1) infinite 3.75s; }
 
 /* ── Wordmark row ── */
 .splash-wordmark {

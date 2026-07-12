@@ -25,7 +25,111 @@ from pathlib import Path
 SEED = 42
 OUTPUT_DIR = Path("knowledge")
 CORPUS_DIR = OUTPUT_DIR / "corpus"
-RULES_PATH = OUTPUT_DIR / "generation_rules.json"
+
+GENERATION_RULES = {
+    "iit_tier": {
+        "tier_range": [0.75, 1.0],
+        "fee": [190000, 240000],
+        "hostel_fee": [30000, 50000],
+        "mess_fee": [24000, 36000],
+        "placement_avg": [10, 24],
+        "placement_highest_multiplier": [8, 15],
+        "placement_rate": [85, 98],
+        "student_strength": [3000, 8000],
+        "hostel_capacity_ratio": [0.55, 0.80],
+        "campus_area_acres": [200, 600],
+        "established_year": [1951, 2015],
+        "departments": [8, 16],
+        "academic_score_base": [7.5, 9.5],
+        "campus_score_base": [7.0, 9.0],
+        "industry_score_base": [7.5, 9.5]
+    },
+    "nit_tier": {
+        "tier_range": [0.55, 0.85],
+        "fee": [120000, 220000],
+        "hostel_fee": [20000, 35000],
+        "mess_fee": [18000, 28000],
+        "placement_avg": [7, 18],
+        "placement_highest_multiplier": [5, 10],
+        "placement_rate": [75, 95],
+        "student_strength": [2500, 6000],
+        "hostel_capacity_ratio": [0.50, 0.75],
+        "campus_area_acres": [150, 450],
+        "established_year": [1959, 2010],
+        "departments": [7, 14],
+        "academic_score_base": [6.5, 8.5],
+        "campus_score_base": [6.5, 8.5],
+        "industry_score_base": [6.5, 8.5]
+    },
+    "iiit_tier": {
+        "tier_range": [0.50, 0.80],
+        "fee": [100000, 180000],
+        "hostel_fee": [18000, 30000],
+        "mess_fee": [16000, 26000],
+        "placement_avg": [6, 15],
+        "placement_highest_multiplier": [4, 9],
+        "placement_rate": [70, 92],
+        "student_strength": [800, 3000],
+        "hostel_capacity_ratio": [0.60, 0.85],
+        "campus_area_acres": [50, 200],
+        "established_year": [1998, 2018],
+        "departments": [3, 7],
+        "academic_score_base": [6.0, 8.0],
+        "campus_score_base": [5.5, 7.5],
+        "industry_score_base": [6.5, 8.5]
+    },
+    "government": {
+        "tier_range": [0.30, 0.60],
+        "fee": [70000, 140000],
+        "hostel_fee": [10000, 22000],
+        "mess_fee": [12000, 20000],
+        "placement_avg": [3, 8],
+        "placement_highest_multiplier": [3, 6],
+        "placement_rate": [50, 75],
+        "student_strength": [1000, 3500],
+        "hostel_capacity_ratio": [0.60, 0.90],
+        "campus_area_acres": [30, 120],
+        "established_year": [1958, 2010],
+        "departments": [4, 9],
+        "academic_score_base": [4.5, 6.5],
+        "campus_score_base": [4.0, 6.0],
+        "industry_score_base": [3.5, 5.5]
+    },
+    "state_university": {
+        "tier_range": [0.25, 0.55],
+        "fee": [80000, 150000],
+        "hostel_fee": [10000, 20000],
+        "mess_fee": [12000, 20000],
+        "placement_avg": [3, 7],
+        "placement_highest_multiplier": [3, 6],
+        "placement_rate": [45, 70],
+        "student_strength": [1500, 5000],
+        "hostel_capacity_ratio": [0.40, 0.70],
+        "campus_area_acres": [50, 200],
+        "established_year": [1960, 2005],
+        "departments": [5, 12],
+        "academic_score_base": [4.0, 6.0],
+        "campus_score_base": [4.5, 6.5],
+        "industry_score_base": [3.0, 5.0]
+    },
+    "private": {
+        "tier_range": [0.20, 0.70],
+        "fee": [120000, 280000],
+        "hostel_fee": [18000, 40000],
+        "mess_fee": [16000, 30000],
+        "placement_avg": [3, 9],
+        "placement_highest_multiplier": [3, 7],
+        "placement_rate": [40, 80],
+        "student_strength": [1200, 6000],
+        "hostel_capacity_ratio": [0.40, 0.75],
+        "campus_area_acres": [20, 150],
+        "established_year": [1985, 2020],
+        "departments": [4, 12],
+        "academic_score_base": [3.5, 7.0],
+        "campus_score_base": [4.0, 7.5],
+        "industry_score_base": [3.0, 6.5]
+    }
+}
 
 DEPARTMENTS = [
     "Computer Science & Engineering",
@@ -104,8 +208,7 @@ SCHOLARSHIP_TYPES = [
 
 class CorpusGenerator:
     def __init__(self):
-        with open(RULES_PATH, "r") as f:
-            self.rules = json.load(f)
+        self.rules = GENERATION_RULES
         self.used_names = set()
         self.colleges = []
 

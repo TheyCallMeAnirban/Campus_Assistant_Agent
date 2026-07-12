@@ -24,70 +24,13 @@ function SplashScreen({ onDone }) {
 
   return (
     <div className={`splash ${fading ? 'splash--out' : ''}`}>
-
-      {/* ── Morphing icon stage ── */}
+      {/* Pulse logo stage */}
       <div className="splash-stage">
-
-        {/* 1 — Bicycle */}
-        <svg className="splash-icon splash-icon--1" viewBox="0 0 48 48" fill="none"
-          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="36" r="9"/>
-          <circle cx="36" cy="36" r="9"/>
-          <circle cx="22" cy="30" r="2" fill="currentColor"/>
-          <line x1="22" y1="30" x2="12" y2="36"/>
-          <line x1="22" y1="30" x2="36" y2="36"/>
-          <line x1="20" y1="16" x2="22" y2="30"/>
-          <line x1="20" y1="16" x2="34" y2="20"/>
-          <line x1="34" y1="20" x2="22" y2="30"/>
-          <line x1="34" y1="20" x2="36" y2="36"/>
-          <line x1="15" y1="14" x2="23" y2="14"/>
-          <line x1="19" y1="14" x2="20" y2="16"/>
-          <line x1="32" y1="17" x2="38" y2="17"/>
-          <line x1="36" y1="15" x2="34" y2="20"/>
-        </svg>
-
-        {/* 2 — Golf bag */}
-        <svg className="splash-icon splash-icon--2" viewBox="0 0 48 48" fill="none"
-          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17,18 Q15,18 14,20 L12,42 Q12,44 14,44 L34,44 Q36,44 36,42 L34,20 Q33,18 31,18 Z"/>
-          <line x1="17" y1="18" x2="31" y2="18"/>
-          <line x1="20" y1="9" x2="20" y2="18"/>
-          <line x1="24" y1="7" x2="24" y2="18"/>
-          <line x1="28" y1="9" x2="28" y2="18"/>
-          <circle cx="20" cy="8.5" r="1.5"/>
-          <circle cx="24" cy="6.5" r="1.5"/>
-          <circle cx="28" cy="8.5" r="1.5"/>
-          <path d="M16,26 Q24,22 32,30"/>
-          <line x1="18" y1="44" x2="16" y2="47"/>
-          <line x1="30" y1="44" x2="32" y2="47"/>
-        </svg>
-
-        {/* 3 — Coffee mug */}
-        <svg className="splash-icon splash-icon--3" viewBox="0 0 48 48" fill="none"
-          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10,22 L10,42 Q10,44 12,44 L34,44 Q36,44 36,42 L36,22 Z"/>
-          <line x1="8" y1="22" x2="38" y2="22"/>
-          <path d="M36,28 Q45,28 45,35 Q45,42 36,42"/>
-          <path d="M18,17 Q20,12 18,7"/>
-          <path d="M24,17 Q26,12 24,7"/>
-          <path d="M30,17 Q32,12 30,7"/>
-        </svg>
-
-        {/* 4 — Laptop */}
-        <svg className="splash-icon splash-icon--4" viewBox="0 0 48 48" fill="none"
-          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="6" y="5" width="36" height="26" rx="2"/>
-          <rect x="10" y="9" width="28" height="18" rx="1"/>
-          <rect x="2" y="31" width="44" height="9" rx="2"/>
-          <line x1="6" y1="31" x2="42" y2="31"/>
-          <rect x="17" y="34" width="14" height="4" rx="1"/>
-        </svg>
-
+        <img src="/logo.svg" alt="Logo" className="splash-logo-pulse" />
       </div>
 
       {/* Wordmark */}
       <div className="splash-wordmark">
-        <img src="/logo.svg" alt="" width="22" height="22" />
         <span>Jharkhand Campus Agent</span>
       </div>
 
